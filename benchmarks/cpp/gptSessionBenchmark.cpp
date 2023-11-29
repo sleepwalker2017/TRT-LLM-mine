@@ -129,10 +129,11 @@ void benchmarkGptSession(std::string const& modelName, std::filesystem::path con
             printf("Benchmarking done. Iteration: %d, duration: %.2f sec.\n", iterIdx, curDuration / 1000);
 
             auto averageLatency = curDuration / iterIdx;
+	    float tps = batchSize * maxNewTokens * 1000.0 / averageLatency;
             if (worldConfig.getRank() == 0)
             {
-                printf("[BENCHMARK] batch_size %d input_length %d output_length %d latency(ms) %.2f\n", batchSize,
-                    maxInputLength, maxNewTokens, averageLatency);
+                printf("[BENCHMARK] batch_size %d input_length %d output_length %d latency(ms) %.2f, tps %.2f\n", batchSize,
+                    maxInputLength, maxNewTokens, averageLatency, tps);
             }
         }
     }

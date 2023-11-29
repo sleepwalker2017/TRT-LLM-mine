@@ -241,8 +241,14 @@ def generate(
     input_ids, input_lengths = parse_input(input_text, input_file, tokenizer,
                                            EOS_TOKEN,
                                            model_config.remove_input_padding)
+    t = np.loadtxt('len_32.csv', delimiter=',', dtype=np.int32)
+    input_ids = torch.Tensor(t).int().cuda()
 
+    if len(input_ids.shape) == 1:
+        input_ids = input_ids.reshape(1, -1)
+    input_lengths = torch.Tensor(input_ids.shape[0] * [input_ids.shape[-1]]).int().cuda()
     max_input_length = torch.max(input_lengths).item()
+    
     decoder.setup(input_lengths.size(0), max_input_length, max_output_len,
                   num_beams)
 
@@ -251,6 +257,28 @@ def generate(
                                     sampling_config,
                                     streaming=streaming)
     torch.cuda.synchronize()
+
+    ite = 100
+    import time
+
+
+    st = time.time()
+    for _ in range(ite):
+        output_gen_ids = decoder.decode(input_ids,
+                                        input_lengths,
+                                        sampling_config,
+                                        streaming=streaming)
+    torch.cuda.synchronize()
+
+    duration = time.time() - st
+    print(input_ids.shape, output_gen_ids.shape, duration)
+    output_len = output_gen_ids.shape[-1] - input_lengths[0].item()
+    batch = input_lengths.shape[0]
+
+    print("output len", output_len, "batch", batch, "ite", ite, "duration", duration)
+    tps = batch * output_len * ite / duration
+
+    '''
     if streaming:
         for output_ids in throttle_generator(output_gen_ids,
                                              streaming_interval):
@@ -262,6 +290,8 @@ def generate(
         if runtime_rank == 0:
             print_output(output_ids, input_lengths, max_output_len, tokenizer,
                          output_csv, output_npy)
+    '''
+    print("tps is", tps)
 
 
 if __name__ == '__main__':

@@ -36,7 +36,7 @@ def generate_dataset(num_samples):
 
     with open(dummy_cnn_dataset, 'w') as f:
         json.dump(samples, f)
-
+    print('write to', dummy_cnn_dataset)
 
 if __name__ == '__main__':
     generate_dataset(num_samples=50)
