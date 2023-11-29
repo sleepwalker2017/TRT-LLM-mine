@@ -34,7 +34,7 @@ def build_engine(weight_dir: _pl.Path, engine_dir: _pl.Path, world_size, *args):
         str(weight_dir),
         '--output_dir',
         str(engine_dir),
-        '--max_batch_size=256',
+        '--max_batch_size=8',
         '--max_input_len=40',
         '--max_output_len=20',
         '--max_beam_width=2',
@@ -142,13 +142,14 @@ def build_engines(model_cache: _tp.Optional[str] = None, world_size: int = 1):
                  engine_dir / 'fp16-plugin-packed' / tp_pp_dir, tp_size,
                  '--dtype=float16', '--use_gpt_attention_plugin=float16',
                  '--remove_input_padding')
+    '''
     # this engine can be use for in-flight batching
     build_engine(fp16_weight_dir_x_gpu,
                  engine_dir / 'fp16-plugin-packed-paged' / tp_pp_dir, tp_size,
                  '--dtype=float16', '--use_gpt_attention_plugin=float16',
                  '--remove_input_padding', '--paged_kv_cache',
                  '--enable_context_fmha', '--max_num_tokens=10000')
-
+    '''
     print("Done.")
 
 

@@ -454,6 +454,7 @@ std::pair<std::vector<std::vector<int32_t>>, std::vector<int32_t>> parseDataset(
     for (auto& sample : json)
     {
         input_ids_list.push_back(sample["input_ids"]);
+	std::cout << "input len is " << sample["input_ids"].size() << std::endl;
         output_ids_list.push_back(sample["output_len"]);
     }
     return std::make_pair(input_ids_list, output_ids_list);
@@ -489,7 +490,7 @@ void benchmarkGptManager(std::string const& modelName, std::filesystem::path con
     for (int i = 0; i < num_samples; ++i)
     {
         const auto input_ids = dataset.first[i];
-        const auto request_output_len = dataset.second[i];
+        const auto request_output_len = dataset.second[i] + i*10;
         std::vector<int64_t> input_ids_shape = {1, static_cast<int64_t>(input_ids.size())};
         auto input_ids_tensor = NamedTensor(nvinfer1::DataType::kINT32, input_ids_shape, "input_ids", input_ids.data());
         auto request_output_len_tensor
