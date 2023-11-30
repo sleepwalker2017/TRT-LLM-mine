@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import csv
 
 from transformers import AutoTokenizer, LlamaTokenizer, T5Tokenizer
 
@@ -47,6 +48,19 @@ if __name__ == '__main__':
     tokenizer.pad_token = tokenizer.eos_token
 
     results = []
+    with open('data.csv', 'r') as fp:
+        reader = csv.DictReader(fp)
+        test_data = {}
+        for row in reader:
+            for column, value in row.items():
+                test_data.setdefault(column, []).append(value)
+    test_data = test_data['prompt']
+
+    for prompt in test_data:
+        line = tokenizer.encode(prompt)
+        output_len = 256
+        results.append({'input_ids': line, 'output_len': output_len})
+    '''
     with open(FLAGS.dataset, 'r') as f:
         data_dict = json.load(f)
         for req in data_dict:
@@ -58,6 +72,6 @@ if __name__ == '__main__':
             # 1.3 is a magic number that converts number of words to number of tokens
             output_len = int(len(output.split(' ')) * 1.3)
             results.append({'input_ids': line, 'output_len': output_len})
-
+    '''
     with open(FLAGS.output, 'w') as f:
         json.dump(results, f)
