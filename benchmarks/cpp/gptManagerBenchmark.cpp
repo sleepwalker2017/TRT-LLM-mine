@@ -239,11 +239,15 @@ public:
         mSeqThroughput = mNumSamples / (mTotalLatency / 1000);
         mAvgSeqLatency = 0;
         int totalOutputTokens = 0;
+	printf("output token len:\n");
         for (auto reqInfo : mRequestBenchInfos)
         {
             mAvgSeqLatency += reqInfo.second.latency;
             totalOutputTokens += reqInfo.second.outputLength;
+	    printf("%d    ", reqInfo.second.outputLength);
         }
+	printf("\n");
+        printf("[BENCHMARK] totalOutputTokens %d\n", totalOutputTokens);
         mAvgSeqLatency /= mNumSamples;
         mTokenThroughput = totalOutputTokens / (mTotalLatency / 1000);
     }
@@ -487,10 +491,12 @@ void benchmarkGptManager(std::string const& modelName, std::filesystem::path con
     auto dataset = parseDataset(datasetPath);
     std::vector<std::vector<NamedTensor>> tensors_list;
     const auto num_samples = dataset.first.size();
+    
     for (int i = 0; i < num_samples; ++i)
     {
         const auto input_ids = dataset.first[i];
-        const auto request_output_len = dataset.second[i] + i*10;
+        const auto request_output_len = dataset.second[i];
+	printf("request_output_len %d\t", request_output_len);
         std::vector<int64_t> input_ids_shape = {1, static_cast<int64_t>(input_ids.size())};
         auto input_ids_tensor = NamedTensor(nvinfer1::DataType::kINT32, input_ids_shape, "input_ids", input_ids.data());
         auto request_output_len_tensor
@@ -498,7 +504,7 @@ void benchmarkGptManager(std::string const& modelName, std::filesystem::path con
         std::vector<NamedTensor> tensors = {input_ids_tensor, request_output_len_tensor};
         tensors_list.push_back(tensors);
     }
-
+	printf("\n");
     const int maxBeamWidth = 1;
     auto recorder = std::make_shared<Recorder>();
     uint64_t terminateReqId = num_samples + 1;
